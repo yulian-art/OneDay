@@ -1,6 +1,5 @@
 package com.julien.feature_device.ui
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,25 +10,22 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.julien.feature_device.model.ConnectionStatus
-import com.julien.feature_device.model.DeviceInfo
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.arashivision.inskmp.insble.data.BleDeviceCore
+import com.julien.feature_device.data.repository.ConnectionState
 import com.julien.feature_device.viewmodel.DeviceViewModel
 
-/**
- * 设备管理主屏幕
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeviceScreen(
-    viewModel: DeviceViewModel = viewModel(),
+    viewModel: DeviceViewModel = hiltViewModel(),
     onNavigateBack: (() -> Unit)? = null
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val scannedDevices by viewModel.scannedDevices.collectAsState()
+    val connectionState by viewModel.connectionState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -55,28 +51,27 @@ fun DeviceScreen(
                 .padding(padding)
                 .padding(16.dp)
         ) {
-            // 错误提示
-            uiState.errorMessage?.let { error ->
-                ErrorBanner(
-                    message = error,
-                    onDismiss = { viewModel.clearError() }
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+            when (val state = connectionState) {
+                is ConnectionState.Error -> {
+                    ErrorBanner(
+                        message = state.message,
+                        onDismiss = {}
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+                is ConnectionState.Connected -> {
+                    ConnectedDeviceCard(
+                        device = state.device,
+                        onDisconnect = { viewModel.disconnectDevice() }
+                    )
+                }
+                else -> Unit
             }
 
-            // 已连接设备
-            uiState.connectedDevice?.let { device ->
-                ConnectedDeviceCard(
-                    device = device,
-                    onDisconnect = { viewModel.disconnectDevice() }
-                )
-            }
-
-            // 未连接时显示扫描区域
-            if (uiState.connectedDevice == null) {
+            if (connectionState !is ConnectionState.Connected) {
                 ScanSection(
-                    isScanning = uiState.isScanning,
-                    availableDevices = uiState.availableDevices,
+                    connectionState = connectionState,
+                    availableDevices = scannedDevices,
                     onStartScan = { viewModel.startScan() },
                     onStopScan = { viewModel.stopScan() },
                     onConnectDevice = { viewModel.connectDevice(it) }
@@ -86,9 +81,6 @@ fun DeviceScreen(
     }
 }
 
-/**
- * 错误横幅
- */
 @Composable
 private fun ErrorBanner(
     message: String,
@@ -118,23 +110,13 @@ private fun ErrorBanner(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onErrorContainer
             )
-            IconButton(onClick = onDismiss) {
-                Icon(
-                    Icons.Default.Close,
-                    contentDescription = "关闭",
-                    tint = MaterialTheme.colorScheme.onErrorContainer
-                )
-            }
         }
     }
 }
 
-/**
- * 已连接设备卡片
- */
 @Composable
 private fun ConnectedDeviceCard(
-    device: DeviceInfo,
+    device: com.julien.feature_device.model.DeviceInfo,
     onDisconnect: () -> Unit
 ) {
     Card(
@@ -157,7 +139,18 @@ private fun ConnectedDeviceCard(
                     fontWeight = FontWeight.Bold
                 )
 
-                ConnectionStatusChip(status = device.status)
+                Surface(
+                    shape = RoundedCornerShape(999.dp),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                ) {
+                    Text(
+                        text = "已连接",
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -181,8 +174,7 @@ private fun ConnectedDeviceCard(
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.error
-                ),
-                enabled = device.status != ConnectionStatus.CONNECTING
+                )
             ) {
                 Icon(Icons.Default.Close, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
@@ -192,9 +184,6 @@ private fun ConnectedDeviceCard(
     }
 }
 
-/**
- * 设备信息行
- */
 @Composable
 private fun DeviceInfoRow(
     icon: ImageVector,
@@ -227,43 +216,17 @@ private fun DeviceInfoRow(
     }
 }
 
-/**
- * 连接状态芯片
- */
-@Composable
-private fun ConnectionStatusChip(status: ConnectionStatus) {
-    val (color, text) = when (status) {
-        ConnectionStatus.CONNECTED -> MaterialTheme.colorScheme.primary to "已连接"
-        ConnectionStatus.CONNECTING -> MaterialTheme.colorScheme.tertiary to "连接中..."
-        ConnectionStatus.ERROR -> MaterialTheme.colorScheme.error to "错误"
-        ConnectionStatus.DISCONNECTED -> MaterialTheme.colorScheme.outline to "未连接"
-    }
-
-    Surface(
-        shape = RoundedCornerShape(999.dp),
-        color = color.copy(alpha = 0.1f)
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = color,
-            fontWeight = FontWeight.Medium
-        )
-    }
-}
-
-/**
- * 扫描区域
- */
 @Composable
 private fun ScanSection(
-    isScanning: Boolean,
-    availableDevices: List<DeviceInfo>,
+    connectionState: ConnectionState,
+    availableDevices: List<BleDeviceCore>,
     onStartScan: () -> Unit,
     onStopScan: () -> Unit,
-    onConnectDevice: (DeviceInfo) -> Unit
+    onConnectDevice: (BleDeviceCore) -> Unit
 ) {
+    val isScanning = connectionState is ConnectionState.Scanning
+    val isConnecting = connectionState is ConnectionState.Connecting
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -278,6 +241,7 @@ private fun ScanSection(
 
             Button(
                 onClick = if (isScanning) onStopScan else onStartScan,
+                enabled = !isConnecting,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (isScanning)
                         MaterialTheme.colorScheme.secondary
@@ -296,12 +260,11 @@ private fun ScanSection(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (isScanning) {
-            ScanningIndicator()
-        } else if (availableDevices.isEmpty()) {
-            EmptyDeviceList()
-        } else {
-            DeviceList(
+        when {
+            isScanning -> ScanningIndicator()
+            isConnecting -> ConnectingIndicator((connectionState as ConnectionState.Connecting).deviceName)
+            availableDevices.isEmpty() -> EmptyDeviceList()
+            else -> DeviceList(
                 devices = availableDevices,
                 onConnectDevice = onConnectDevice
             )
@@ -309,9 +272,6 @@ private fun ScanSection(
     }
 }
 
-/**
- * 扫描指示器
- */
 @Composable
 private fun ScanningIndicator() {
     Card(
@@ -336,9 +296,30 @@ private fun ScanningIndicator() {
     }
 }
 
-/**
- * 空设备列表
- */
+@Composable
+private fun ConnectingIndicator(deviceName: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CircularProgressIndicator()
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "正在连接到 $deviceName...",
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+    }
+}
+
 @Composable
 private fun EmptyDeviceList() {
     Card(
@@ -375,13 +356,10 @@ private fun EmptyDeviceList() {
     }
 }
 
-/**
- * 设备列表
- */
 @Composable
 private fun DeviceList(
-    devices: List<DeviceInfo>,
-    onConnectDevice: (DeviceInfo) -> Unit
+    devices: List<BleDeviceCore>,
+    onConnectDevice: (BleDeviceCore) -> Unit
 ) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -395,13 +373,10 @@ private fun DeviceList(
     }
 }
 
-/**
- * 设备列表项
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DeviceListItem(
-    device: DeviceInfo,
+    device: BleDeviceCore,
     onConnect: () -> Unit
 ) {
     Card(
@@ -414,7 +389,6 @@ private fun DeviceListItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 设备图标
             Surface(
                 shape = RoundedCornerShape(12.dp),
                 color = MaterialTheme.colorScheme.primaryContainer,
@@ -434,39 +408,20 @@ private fun DeviceListItem(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // 设备信息
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = device.deviceName,
+                    text = device.name ?: "Unknown Device",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Medium
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = device.deviceType,
+                    text = device.address,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                if (device.batteryLevel >= 0) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.BatteryFull,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "${device.batteryLevel}%",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
             }
 
-            // 连接按钮
             Icon(
                 Icons.Default.ChevronRight,
                 contentDescription = "连接",

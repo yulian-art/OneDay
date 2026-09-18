@@ -24,4 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "My Application"
 include(":app")
-include(":app:feature-device")
+include(":feature-device")

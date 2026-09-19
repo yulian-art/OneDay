@@ -419,7 +419,7 @@ class DeviceConnectionE2ETest {
 ### 本周任务
 1. 📝 **添加 DeviceRepository 集成测试**
 2. 📝 **完善 UI 组件测试**
-3. 📝 **配置 CI/CD 自动测试**
+3. 📝 **完善本地测试脚本**
 
 ### 长期目标
 1. 📝 **性能测试框架**

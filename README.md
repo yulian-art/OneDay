@@ -2,7 +2,6 @@
 
 > AI 辅助的宠物行为记录与视频剪辑应用
 
-[![测试状态](https://img.shields.io/badge/tests-passing-brightgreen)]()
 [![架构文档](https://img.shields.io/badge/docs-complete-blue)]()
 [![开发阶段](https://img.shields.io/badge/phase-2%20完成-yellow)]()
 
@@ -40,7 +39,6 @@
 - [x] Jetpack Compose UI（Material Design 3）
 - [x] 单元测试框架（12个测试用例）
 - [x] E2E 测试框架（7个测试场景）
-- [x] CI/CD 自动化测试流水线
 
 ### Phase 3: 真实设备集成 🔄 (进行中)
 - [ ] 集成 Insta360 SDK
@@ -206,15 +204,6 @@ make test-all        # 完整测试套件
 - ⏳ **Repository**: 待实现真实蓝牙测试
 - ⏳ **UI 组件**: 待补充 Compose 组件测试
 
-### CI/CD 流水线
-- ✅ 单元测试自动运行
-- ✅ Lint 检查
-- ✅ E2E 测试（Android Emulator）
-- ✅ 构建验证
-- ✅ 测试覆盖率报告
-
----
-
 ## 📊 代码统计
 
 ```
@@ -223,7 +212,6 @@ make test-all        # 完整测试套件
   - Kotlin: ~3,000 行
   - Markdown: ~8,000 行（文档）
   - SQL: ~800 行
-  - YAML: ~200 行（CI/CD）
 
 Android 模块:
   - feature-device: ~1,200 行
@@ -258,7 +246,6 @@ Android 模块:
 - **部署**: Docker + Docker Compose
 
 ### DevOps
-- **CI/CD**: GitHub Actions
 - **代码质量**: Lint, Detekt
 - **测试覆盖率**: JaCoCo, Codecov
 

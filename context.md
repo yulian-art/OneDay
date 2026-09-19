@@ -17,12 +17,11 @@ completed_deliverables:
     - DeviceViewModelTest.kt: 单元测试 (12个用例)
     - Insta360Simulator.kt: 设备模拟器
     - DeviceConnectionE2ETest.kt: E2E测试 (7个场景)
-    - GitHub Actions CI/CD: 自动化测试流水线
 blockers: 
   - WSL 环境 Build Tools 问题 (临时方案: Windows 环境构建)
   - 缺少测试依赖配置 (待添加到 build.gradle.kts)
 next_phase: Phase 3 - 真实设备集成与后端开发
-last_update: 2026-09-18 (测试框架搭建完成)
+last_update: 2026-09-19 (移除 CI/CD 自动检测流)
 ```
 
 ## Phase 1 交付物总结
@@ -145,6 +144,10 @@ last_update: 2026-09-18 (测试框架搭建完成)
 - Phase 1 交付物 → 等待用户审查
 
 ## History
+- 2026-09-19: 移除 CI/CD 自动检测流
+  - 删除 GitHub Actions 测试工作流
+  - 保留测试代码、测试策略和本地运行方式
+
 - 2026-09-18 16:45: 端到端测试框架搭建完成 (Claude Opus 5)
   - ✅ 测试策略文档:
     - E2E_TESTING_STRATEGY.md: 完整测试金字塔架构 (60% Unit / 30% Integration / 10% E2E)
@@ -160,7 +163,7 @@ last_update: 2026-09-18 (测试框架搭建完成)
     - DeviceConnectionE2ETest.kt: 7个端到端测试场景
     - 覆盖完整连接流程、错误处理、UI 交互
   - ✅ CI/CD 配置:
-    - .github/workflows/tests.yml: GitHub Actions 自动化测试流水线
+    - GitHub Actions 自动化测试流水线（已于 2026-09-19 移除）
     - 6个 Job: 单元测试、Lint、E2E测试、构建、覆盖率、测试总结
   - 📝 待添加: 测试依赖到 build.gradle.kts
   - 📝 待实现: Repository 集成测试（真实蓝牙）
@@ -285,6 +288,5 @@ make test-all
 - **交付总结**: [TESTING_DELIVERY_SUMMARY.md](TESTING_DELIVERY_SUMMARY.md)
 
 ### CI/CD 状态
-- ✅ GitHub Actions 配置完成
-- ⏳ 待首次运行验证
-- 📝 待添加测试状态徽章到 README
+- ℹ️ 未启用自动化检测流
+- 📝 测试需在本地手动运行

@@ -847,7 +847,7 @@ make test-performance   # 性能测试 (~15 分钟)
 
 ### 短期 (P1)
 1. 📝 **实现 API 集成测试**
-2. 📝 **配置 GitHub Actions CI**
+2. 📝 **完善本地测试脚本**
 3. 📝 **准备测试数据 fixtures**
 4. 📝 **Mock AI 模型响应**
 

@@ -20,4 +20,5 @@ interface DeviceRepository {
     suspend fun stopScanning()
     suspend fun connect(device: BleDeviceCore)
     suspend fun disconnect()
+    fun getCurrentDevice(): DeviceInfo?
 }

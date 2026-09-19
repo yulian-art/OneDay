@@ -4,30 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
-import com.julien.feature_device.model.ConnectionStatus
 import com.julien.feature_device.model.DeviceInfo
-
-/**
- * 设备列表项预览
- */
-@Preview(name = "Device List Item - Light", showBackground = true)
-@Composable
-private fun PreviewDeviceListItem() {
-    MaterialTheme {
-        Surface {
-            DeviceListItem(
-                device = DeviceInfo(
-                    deviceId = "INS_X4_001",
-                    deviceName = "Insta360 X4",
-                    deviceType = "X4",
-                    firmwareVersion = "v1.0.45",
-                    batteryLevel = 85
-                ),
-                onConnect = {}
-            )
-        }
-    }
-}
 
 /**
  * 已连接设备卡片预览
@@ -43,8 +20,7 @@ private fun PreviewConnectedDeviceCard() {
                     deviceName = "Insta360 X4",
                     deviceType = "X4",
                     firmwareVersion = "v1.0.45",
-                    batteryLevel = 85,
-                    status = ConnectionStatus.CONNECTED
+                    batteryLevel = 85
                 ),
                 onDisconnect = {}
             )

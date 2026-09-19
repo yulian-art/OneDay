@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.arashivision.inskmp.insble.data.BleDeviceCore
 import com.julien.feature_device.data.repository.ConnectionState
 import com.julien.feature_device.viewmodel.DeviceViewModel
@@ -21,7 +22,7 @@ import com.julien.feature_device.viewmodel.DeviceViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeviceScreen(
-    viewModel: DeviceViewModel = hiltViewModel(),
+    viewModel: DeviceViewModel = viewModel(),
     onNavigateBack: (() -> Unit)? = null
 ) {
     val scannedDevices by viewModel.scannedDevices.collectAsState()
@@ -34,7 +35,7 @@ fun DeviceScreen(
                 navigationIcon = {
                     onNavigateBack?.let {
                         IconButton(onClick = it) {
-                            Icon(Icons.Default.ArrowBack, "返回")
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "返回")
                         }
                     }
                 },
@@ -82,7 +83,7 @@ fun DeviceScreen(
 }
 
 @Composable
-private fun ErrorBanner(
+internal fun ErrorBanner(
     message: String,
     onDismiss: () -> Unit
 ) {
@@ -115,7 +116,7 @@ private fun ErrorBanner(
 }
 
 @Composable
-private fun ConnectedDeviceCard(
+internal fun ConnectedDeviceCard(
     device: com.julien.feature_device.model.DeviceInfo,
     onDisconnect: () -> Unit
 ) {
@@ -262,7 +263,7 @@ private fun ScanSection(
 
         when {
             isScanning -> ScanningIndicator()
-            isConnecting -> ConnectingIndicator((connectionState as ConnectionState.Connecting).deviceName)
+            isConnecting -> ConnectingIndicator(connectionState.deviceName)
             availableDevices.isEmpty() -> EmptyDeviceList()
             else -> DeviceList(
                 devices = availableDevices,
@@ -273,7 +274,7 @@ private fun ScanSection(
 }
 
 @Composable
-private fun ScanningIndicator() {
+internal fun ScanningIndicator() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -321,7 +322,7 @@ private fun ConnectingIndicator(deviceName: String) {
 }
 
 @Composable
-private fun EmptyDeviceList() {
+internal fun EmptyDeviceList() {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -348,7 +349,7 @@ private fun EmptyDeviceList() {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "点击"开始扫描"搜索附近的设备",
+                text = "点击“开始扫描”搜索附近的设备",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )

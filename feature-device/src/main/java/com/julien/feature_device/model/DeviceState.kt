@@ -11,18 +11,6 @@ enum class ConnectionStatus {
 }
 
 /**
- * 设备信息数据类
- */
-data class DeviceInfo(
-    val deviceId: String,
-    val deviceName: String,
-    val deviceType: String,
-    val firmwareVersion: String = "",
-    val batteryLevel: Int = -1,
-    val status: ConnectionStatus = ConnectionStatus.DISCONNECTED
-)
-
-/**
  * 设备 UI 状态
  */
 data class DeviceUiState(

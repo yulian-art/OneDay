@@ -5,17 +5,15 @@ import androidx.lifecycle.viewModelScope
 import com.arashivision.inskmp.insble.data.BleDeviceCore
 import com.julien.feature_device.data.repository.ConnectionState
 import com.julien.feature_device.data.repository.DeviceRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.julien.feature_device.data.repository.DeviceRepositoryImpl
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import javax.inject.Inject
 
-@HiltViewModel
-class DeviceViewModel @Inject constructor(
-    private val repository: DeviceRepository
+class DeviceViewModel(
+    private val repository: DeviceRepository = DeviceRepositoryImpl()
 ) : ViewModel() {
 
     val scannedDevices: StateFlow<List<BleDeviceCore>> = repository.scannedDevices

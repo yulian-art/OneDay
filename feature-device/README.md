@@ -149,10 +149,10 @@ androidx-lifecycle-runtime-compose = "androidx.lifecycle:lifecycle-runtime-compo
 - [x] 状态管理
 - [x] 错误处理 UI
 - [x] UI 预览
+- [x] DeviceRepository 真实蓝牙通信实现
+- [x] Insta360 SDK 集成
 
 ### 🚧 待实现
-- [ ] DeviceRepository 真实蓝牙通信实现
-- [ ] Insta360 SDK 集成
 - [ ] 权限请求封装
 - [ ] 单元测试
 - [ ] 集成测试

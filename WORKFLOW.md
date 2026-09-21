@@ -1,8 +1,8 @@
 # 它的一天 OneDay · 多模型协作规则
 
 ## 角色定义
-- **Overseer（Claude Opus）**：方向、决策、审查。不读大量文件，不迭代细节。
-- **Worker（DeepSeek V4-Pro）**：执行、迭代、细节实现。读文件、写代码、修 bug。
+- **Overseer**：方向、决策、审查。不读大量文件，不迭代细节。
+- **Worker**：执行、迭代、细节实现。读文件、写代码、修 bug。
 
 ## 切换触发条件
 - Worker 遇到架构分叉 → 升级给 Overseer

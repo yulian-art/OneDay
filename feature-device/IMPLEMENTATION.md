@@ -1,5 +1,7 @@
 # Feature-Device 模块实现总结
 
+> 历史说明：本文保留早期实现方案。2026-09-19 核对时，实际代码已接入 Insta360 SDK 2.1.5 与 `data/repository/DeviceRepositoryImpl.kt`，并完成主 app 初始化和权限请求；未使用 Hilt。下文目录、依赖及 SDK 待办已与现状不符，当前开发状态以 [模块 README](README.md) 和 [项目进度](../context.md) 为准。
+
 ## 📦 已完成的文件结构
 
 ```

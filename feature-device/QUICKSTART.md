@@ -1,5 +1,7 @@
 # Feature-Device 快速启动指南
 
+> 2026-09-19 状态核对：SDK 2.1.5、BLE Repository、主 app 页面与权限请求已接入，当前未使用 Hilt。本文后续包含早期占位实现与未采用的 Hilt 示例，需按实际接口调整；当前接入方式和待办见 [模块 README](README.md)，不要将“获取 SDK / 实现 Repository”继续作为未开始任务。
+
 ## 🚀 立即开始
 
 ### 第一步：验证模块结构

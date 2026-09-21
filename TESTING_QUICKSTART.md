@@ -1,5 +1,33 @@
 # OneDay 测试快速启动指南
 
+## 当前可用命令（2026-09-19）
+
+当前仓库包含 3 个 Android JVM 测试、2 个仅检查包名的仪器测试，以及 31 个后端测试用例。验证结果见 [TESTING_DELIVERY_SUMMARY.md](TESTING_DELIVERY_SUMMARY.md) 顶部。
+
+从仓库根目录运行 Android 测试：
+
+```bash
+./gradlew :app:testDebugUnitTest :feature-device:testDebugUnitTest
+# 需模拟器或手机；尚无设备连接业务 E2E
+./gradlew :app:connectedDebugAndroidTest :feature-device:connectedDebugAndroidTest
+```
+
+报告分别位于 `app/build/reports/tests/testDebugUnitTest/` 和 `feature-device/build/reports/tests/testDebugUnitTest/`。
+
+后端先按 [backend/README.md](backend/README.md) 准备虚拟环境，再从仓库根目录运行：
+
+```bash
+cd backend
+./.venv/bin/python -m pytest -q
+./.venv/bin/python -m ruff check .
+```
+
+Windows 使用 `gradlew.bat` 和 `.venv\Scripts\python`。后端测试使用临时数据库和模型替身，不需要相机或模型密钥。
+
+## 早期测试扩展方案（以下内容尚未全部落地）
+
+下文保留为设计参考：`DeviceViewModelTest.kt`、`Insta360Simulator.kt`、`DeviceConnectionE2ETest.kt` 和 Makefile 当前不存在；Hilt、MockK、Coroutines Test、Turbine、Compose UI Test 等示例也未配置。不要将下文“应该看到”或完成标记作为当前交付依据。
+
 ## 🚀 立即开始
 
 ### 第一步：验证测试文件

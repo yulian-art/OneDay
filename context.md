@@ -2,29 +2,64 @@
 
 ## Current State
 ```yaml
-phase: Phase 2 - Android 模块开发与测试框架 (已完成)
+phase: Phase 3 设备联调准备 + Phase 4 后端本地 MVP（并行推进）
 current_tasks:
-  - 测试框架搭建 (已完成, Claude Opus 5)
+  - 验证 Insta360 真机扫描、连接、断开及权限异常流程
+  - Android 接入后端任务、会话、候选与反馈 API
+  - 补齐 Android ViewModel、Repository 和设备连接 E2E 测试
+  - 同步 API_SPEC.md、DB_SCHEMA.sql 与后端实际实现
 completed_deliverables:
-  - ARCHITECTURE.md: 系统架构设计
-  - AI_PIPELINE.md: AI 流水线设计
-  - API_SPEC.md: API 规范
-  - DB_SCHEMA.sql: 数据库 Schema
-  - feature-device 模块: Android 设备连接 UI (已完成)
-  - 端到端测试框架: 完整测试策略和实现 (已完成)
-    - E2E_TESTING_STRATEGY.md: 测试策略文档
-    - TESTING_QUICKSTART.md: 快速启动指南
-    - DeviceViewModelTest.kt: 单元测试 (12个用例)
-    - Insta360Simulator.kt: 设备模拟器
-    - DeviceConnectionE2ETest.kt: E2E测试 (7个场景)
-blockers: 
-  - WSL 环境 Build Tools 问题 (临时方案: Windows 环境构建)
-  - 缺少测试依赖配置 (待添加到 build.gradle.kts)
-next_phase: Phase 3 - 真实设备集成与后端开发
-last_update: 2026-09-19 (移除 CI/CD 自动检测流)
+  - 架构与 AI 流水线设计文档（设计目标不等于已实现能力）
+  - Android 设备管理 Compose UI、MVVM、StateFlow
+  - Insta360 Camera/Media SDK 2.1.5 依赖和 Application 初始化
+  - DeviceRepositoryImpl 的 BLE 扫描、连接、断开及设备信息读取代码
+  - MainActivity 设备页面接入、运行时权限请求及 PermissionHelper
+  - FastAPI 本地 MVP、开发 JWT 登录、资源所有者校验
+  - 任务规则解析与版本管理、会话与时间映射、候选与反馈 API
+  - SQLAlchemy 模型、11 张业务表、Alembic 初始迁移及 PostgreSQL 离线 SQL
+  - VLM 兼容协议适配、持久化 Worker 队列、重试与租约恢复
+  - 反馈正反例复用、人工确认与审计日志
+validation:
+  - Android 既有本地报告为 3 个 JVM 单元测试通过（本次未重新运行）
+  - Android 有本地 Debug APK；真机与仪器测试未验证
+  - 后端 31 个测试用例本次全部通过（含 SQLite 迁移与 PostgreSQL 离线 SQL）
+  - 后端 Ruff 静态检查通过
+open_items:
+  - ViewModel 测试、Insta360Simulator、设备连接 E2E 实现当前均缺失
+  - MockK、Coroutines Test、Turbine、Compose UI Test 等依赖尚未配置
+  - 真实 VLM 服务、PostgreSQL 实例及 Android 与后端联调尚未验证
+  - 根目录 API/SQL 文档仍为旧设计；backend/.env.example 当前缺失
+next_milestone: 手机与相机实测 + Android 与后端最小业务闭环
+last_update: 2026-09-19（按当前仓库代码与本地验证证据核对）
 ```
 
+## 实现与验证基线（2026-09-19）
+
+本次以提交 `4087347` 及工作区文件为依据。阶段并行推进，不再以“Phase 2 全部完成、后端尚未开始”描述当前进展。
+
+| 范围 | 已有实现 / 证据 | 尚未完成或未验证 |
+|------|-----------------|------------------|
+| Android 设备连接 | `DeviceModule.initialize()` 初始化两个 SDK；`DeviceRepositoryImpl` 调用真实 BLE API；主界面已接入 | 手机与相机实测、断连恢复、权限拒绝后的完整交互；无录制/预览实现 |
+| Android 测试 | `app` 的示例测试 1 个；`feature-device` 的示例测试与 `DeviceInfoTest` 各 1 个 | ViewModel、Repository、Compose 交互及完整 E2E；两个仪器测试仅检查应用包名 |
+| 后端业务 | 开发登录、设备同步、任务创建/更新/历史版本、会话开始/停止、候选查询/补传/反馈/保留/忽略、复核任务与审计查询 | Android HTTP 接入、WebSocket、生产身份认证、素材上传与视频导出 |
+| 数据库 | `backend/migrations/versions/0001_backend_initial_backend_schema.py` 定义 11 张业务表；附 PostgreSQL SQL | PostgreSQL 实例迁移和并发验证；根目录 `DB_SCHEMA.sql` 尚未同步为生成基线 |
+| AI 与反馈 | `rules-v1` 支持喝水、玩具交接、接近停留、跳跃；VLM 适配器与 Worker；同版本最多 4 个正反例参与提示 | 真实模型效果/成本验证、L1 端侧检测、原片复核；默认 VLM 关闭，候选转 `needs_review` |
+
+后端预览匹配最多进入 `preliminary_match`，`confirmed` 目前仅来自人工确认。标准纠正只重评当前候选（`affected_candidates=1`）；正反例复用属于提示示例学习。后端校验客户端去人声明，尚未实现或验证去人算法。
+
+### 本次验证记录
+
+- 已核对 Android 既有 XML 报告：2026-09-19 15:11（Asia/Shanghai）共 3 个 JVM 测试通过，0 失败；本次未重跑 Gradle，不能据此认定真机功能通过。
+- 工作区存在 `app/build/outputs/apk/debug/app-debug.apk`，仅说明已有本地构建产物。
+- 在 `backend` 目录执行 `./.venv/bin/python -m pytest --collect-only -q -p no:cacheprovider`：收集 31 个用例。
+- 在 `backend` 目录执行 `./.venv/bin/python -m ruff check . --no-cache`：通过。
+- 后端 `pytest -q -p no:cacheprovider -o faulthandler_timeout=30`：**31 passed, 2 warnings，1.39s**；警告来自 Starlette/HTTPX 和 AnyIO 的弃用提示。测试覆盖 API、Worker、SQLite 迁移/回滚与 PostgreSQL 离线 SQL，未调用真实 VLM 或 PostgreSQL 实例。
+- 环境说明：本次使用已有 Python 3.14.4 虚拟环境；受限沙箱内 TestClient 启动等待超时，获准在沙箱外重跑后通过。
+- GitHub Actions 自动检测流已移除；未发现 Makefile，使用下方实际命令手动验证。
+
 ## Phase 1 交付物总结
+
+以下为设计阶段交付范围。完整 API、数据表、性能和成本指标属于设计目标；当前实现范围以上方基线及 `backend/oneday/`、Alembic 迁移为准。
 
 ### ARCHITECTURE.md
 - **系统概览**: 五层架构（用户交互层、硬件设备层、服务层、AI层、存储层）
@@ -144,11 +179,19 @@ last_update: 2026-09-19 (移除 CI/CD 自动检测流)
 - Phase 1 交付物 → 等待用户审查
 
 ## History
+- 2026-09-19: 根据当前代码更新开发进度
+  - SDK 2.1.5、BLE Repository、Application 初始化及运行时权限请求已落地，进入真机验收阶段。
+  - 后端本地 MVP 已提交：FastAPI、数据库迁移、规则解析、VLM 适配、Worker、反馈示例学习及测试。
+  - 本次后端 31 个测试全部通过，Ruff 通过；Android 核对既有 3 个单元测试通过报告，未重跑真机或 Gradle 测试。
+  - 修正“12 个 ViewModel 测试 + 7 个 E2E 场景已交付”的旧记录；当前仓库没有对应实现。
+  - 区分设计文档、已有代码、本地报告和本次验证，补充 API/SQL 文档不同步及联调待办。
+
 - 2026-09-19: 移除 CI/CD 自动检测流
   - 删除 GitHub Actions 测试工作流
   - 保留测试代码、测试策略和本地运行方式
 
 - 2026-09-18 16:45: 端到端测试框架搭建完成 (Claude Opus 5)
+  - **2026-09-19 核对说明**：以下保留为历史记录；所列 ViewModel 测试、Simulator、E2E 文件当前不在仓库中，不能作为现有交付依据。
   - ✅ 测试策略文档:
     - E2E_TESTING_STRATEGY.md: 完整测试金字塔架构 (60% Unit / 30% Integration / 10% E2E)
     - TESTING_QUICKSTART.md: 快速启动指南
@@ -192,76 +235,23 @@ last_update: 2026-09-19 (移除 CI/CD 自动检测流)
   - 交付 DB_SCHEMA.sql (数据库 Schema)
   - 核心设计：录像分析分离、三层AI、时间同步、纠正分类
 
-## Next Steps (Phase 3 - 真实设备集成)
+## Next Steps（设备验收与前后端联调）
 
-### 立即可做 (优先级 P0)
-1. **添加测试依赖到 build.gradle.kts**
-   ```kotlin
-   // feature-device/build.gradle.kts
-   dependencies {
-       testImplementation("junit:junit:4.13.2")
-       testImplementation("io.mockk:mockk:1.13.8")
-       testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-       testImplementation("app.cash.turbine:turbine:1.0.0")
-       androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.5.4")
-       androidTestImplementation("com.google.dagger:hilt-android-testing:2.48")
-   }
-   ```
-   
-2. **运行单元测试验证框架**
-   ```bash
-   ./gradlew :feature-device:test
-   ```
+### P0：最小闭环
+1. **真机验收**：用 Android 手机与 Insta360 相机验证扫描、连接、信息读取、断开及重复连接，覆盖权限拒绝、蓝牙关闭和连接中断。
+2. **补齐 Android 测试**：为当前 `DeviceViewModel` 和 Repository 接口增加测试与所需依赖，补充设备连接 UI/E2E。当前通过构造参数提供 Repository，未接入 Hilt。
+3. **同步联调契约**：核对 `backend/oneday/main.py` 与 `schemas.py`，更新根目录 API/SQL 文档，补齐 `.env.example`；建库始终使用 Alembic。
+4. **Android 接入后端**：实现任务确认、会话、候选提交、状态查询和反馈页面/网络调用，跑通客户端到 Worker 的闭环。
 
-3. **获取 Insta360 SDK**
-   - 注册开发者账号
-   - 下载 SDK 和文档
-   - 配置 Maven 仓库
+### P1：录制与 AI 验证
+1. **录制和预览**：接入相机录制控制、预览流、同步事件及原片定位，验证停止录制后的补传。
+2. **AI 流水线**：实现 L1 检测，验证真实 VLM 的质量、延迟和成本，再实现原片复核；保留不确定结果供人工处理。
+3. **服务完善**：验证 PostgreSQL 在线迁移与并发，补充 WebSocket、素材上传及导出。
 
-### 短期任务 (本周, P0)
-1. **实现 DeviceRepositoryImpl**
-   - 集成 Insta360 SDK
-   - 实现真实蓝牙扫描和连接
-   - 替换测试中的 Simulator
-
-2. **配置 Hilt 依赖注入**
-   - 创建 DeviceModule (di/)
-   - 提供 DeviceRepository 实例
-   - 在 MainActivity 中初始化 Hilt
-
-3. **集成到主 app 导航**
-   - 在 NavGraph 中添加设备页面路由
-   - 从主页导航到设备管理
-   - 请求蓝牙权限
-
-4. **真机测试**
-   - 在 Android 设备上安装 APK
-   - 测试蓝牙扫描和连接
-   - 验证 E2E 测试场景
-
-### 中期规划 (P1)
-1. **后端开发** (Worker: DeepSeek V4-Pro)
-   - 实现 FastAPI 后端服务
-   - 实现任务管理 API
-   - 实现会话管理 API
-   - PostgreSQL 数据库集成
-
-2. **录制功能** (Worker: Claude Sonnet 5)
-   - 实现 RecordingFragment
-   - 集成 Insta360 录制 API
-   - 实现预览流显示
-   - 时间同步事件记录
-
-3. **AI 流水线集成** (Worker: Claude Opus 5)
-   - 端侧 MediaPipe 检测
-   - VLM API 调用封装
-   - 事件检测状态机
-
-### 长期目标 (P2)
-1. 完整功能实现
-2. 性能优化和测试
-3. 生产环境部署
-4. 用户反馈迭代
+### P2：上线准备
+1. 生产身份认证、TLS、限流与素材授权策略。
+2. 手机后台保活、长时间录制、功耗和恢复能力验证。
+3. 产品完整 Demo、统计分析、性能测试与部署方案。
 
 ---
 
@@ -269,18 +259,19 @@ last_update: 2026-09-19 (移除 CI/CD 自动检测流)
 
 ### 快速开始
 ```bash
-# 运行单元测试（2分钟）
-make test-unit
+# 仓库根目录：Android JVM 单元测试
+./gradlew :app:testDebugUnitTest :feature-device:testDebugUnitTest
 
-# 运行 E2E 测试（需模拟器，5分钟）
-make test-e2e
+# 仓库根目录：现有仪器测试（仅应用包名检查，需模拟器或手机）
+./gradlew :app:connectedDebugAndroidTest :feature-device:connectedDebugAndroidTest
 
-# 快速冒烟测试（3分钟）
-make test-smoke
-
-# 完整测试套件（10分钟）
-make test-all
+# 后端（先按 backend/README.md 准备虚拟环境与依赖）
+cd backend
+./.venv/bin/python -m pytest -q
+./.venv/bin/python -m ruff check .
 ```
+
+Windows 使用 `gradlew.bat` 和 `.venv\Scripts\python`。旧测试文档中的 Makefile、Hilt 测试模块和模拟器示例均不代表当前已配置能力。
 
 ### 文档索引
 - **完整测试策略**: [E2E_TESTING_STRATEGY.md](E2E_TESTING_STRATEGY.md)

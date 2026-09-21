@@ -1,5 +1,35 @@
 # OneDay 端到端测试 - 完整交付总结
 
+## 当前交付核对（2026-09-19）
+
+以下核对依据当前仓库代码与本地验证。本文后面的“历史交付记录”保留早期方案，其中的 12 个 ViewModel 测试、7 个设备连接 E2E 场景和 Simulator **当前均没有对应代码**，不能计为已完成。
+
+| 范围 | 当前交付 | 验证结果 |
+|------|----------|----------|
+| Android JVM | `app` 的 `ExampleUnitTest`；`feature-device` 的 `ExampleUnitTest` 与 `model/DeviceInfoTest`，共 3 个 | 2026-09-19 15:11（Asia/Shanghai）既有 XML 报告全部通过；本次未重跑 |
+| Android 仪器测试 | 两个模块各有 1 个 `ExampleInstrumentedTest`，仅检查包名 | 本次未运行；不等于设备连接 E2E |
+| 后端 API | `backend/tests/test_api.py`，参数化后 15 个用例 | 本次通过 |
+| 后端 Worker/VLM | `backend/tests/test_worker.py`，参数化后 13 个用例 | 本次通过，VLM 使用测试替身/HTTP MockTransport |
+| 后端迁移 | `backend/tests/test_migrations.py`，3 个用例 | 本次通过；含 SQLite 升级/回滚、PostgreSQL 离线 SQL、生产配置校验 |
+| 后端 Ruff | `python -m ruff check . --no-cache` | 本次通过 |
+
+后端合计 **31 passed, 2 warnings，1.39s**。两条警告来自 Starlette/HTTPX 和 AnyIO 弃用提示。受限沙箱内 TestClient 启动等待超时，获准在沙箱外重跑后通过；未运行真实模型、PostgreSQL 实例或 Android 与后端联调。
+
+### 当前缺口
+
+- Android ViewModel、Repository、Compose 交互、设备模拟器及设备连接 E2E 尚待实现。
+- Gradle 当前只配置 JUnit 4、AndroidX JUnit、Espresso；MockK、Coroutines Test、Turbine、Compose UI Test 尚未配置，Hilt 未接入。
+- 真机 BLE 测试、长时间运行、性能/功耗和覆盖率报告尚未完成。
+- 仓库没有 Makefile；GitHub Actions 自动检测流已移除，Detekt、JaCoCo、Codecov 未配置。
+
+实际测试命令见 [TESTING_QUICKSTART.md](TESTING_QUICKSTART.md) 顶部；全项目进度和后续优先级见 [context.md](context.md)。
+
+---
+
+## 历史交付记录（2026-09-18，非当前验收结果）
+
+下文中的完成标记、文件链接、运行耗时及覆盖率描述为旧记录，当前未落地的部分按上方“当前缺口”处理。
+
 ## ✅ 已完成的工作
 
 ### 📄 文档交付 (2个文件)

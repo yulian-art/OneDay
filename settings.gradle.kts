@@ -24,3 +24,5 @@ dependencyResolutionManagement {
 rootProject.name = "OneDay"
 include(":app")
 include(":feature-device")
+include(":core-media")
+include(":feature-recording")
